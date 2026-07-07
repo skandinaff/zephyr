@@ -104,6 +104,7 @@ struct ssd16xx_config {
 	uint16_t rotation;
 	uint16_t height;
 	uint16_t width;
+	uint16_t x_offset;
 	uint8_t tssv;
 };
 
@@ -398,6 +399,9 @@ static int ssd16xx_set_window(const struct device *dev,
 		return -EINVAL;
 	}
 
+	x_start += config->x_offset;
+	x_end += config->x_offset;
+
 	err = ssd16xx_set_ram_param(dev, x_start, x_end, y_start, y_end);
 	if (err < 0) {
 		return err;
@@ -615,6 +619,7 @@ static int ssd16xx_clear_cntlr_mem(const struct device *dev, uint8_t ram_cmd)
 {
 	const struct ssd16xx_config *config = dev->config;
 	uint16_t panel_h = config->height / EPD_PANEL_NUMOF_ROWS_PER_PAGE;
+	uint16_t first_page = SSD16XX_PANEL_FIRST_PAGE + config->x_offset;
 	uint16_t last_gate = config->width - 1;
 	uint8_t clear_page[64];
 	int err;
@@ -633,14 +638,14 @@ static int ssd16xx_clear_cntlr_mem(const struct device *dev, uint8_t ram_cmd)
 		return err;
 	}
 
-	err = ssd16xx_set_ram_param(dev, SSD16XX_PANEL_FIRST_PAGE,
-				    panel_h - 1, last_gate,
+	err = ssd16xx_set_ram_param(dev, first_page,
+				    first_page + panel_h - 1, last_gate,
 				    SSD16XX_PANEL_FIRST_GATE);
 	if (err < 0) {
 		return err;
 	}
 
-	err = ssd16xx_set_ram_ptr(dev, SSD16XX_PANEL_FIRST_PAGE, last_gate);
+	err = ssd16xx_set_ram_ptr(dev, first_page, last_gate);
 	if (err < 0) {
 		return err;
 	}
@@ -1071,6 +1076,7 @@ static struct ssd16xx_quirks quirks_solomon_ssd1681 = {
 		.quirks = quirks_ptr,					\
 		.height = DT_PROP(n, height),				\
 		.width = DT_PROP(n, width),				\
+		.x_offset = DT_PROP(n, x_offset),			\
 		.rotation = DT_PROP(n, rotation),			\
 		.tssv = DT_PROP_OR(n, tssv, 0),				\
 		.softstart = SSD16XX_ASSIGN_ARRAY(n, softstart),	\

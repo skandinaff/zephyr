@@ -43,6 +43,13 @@ properties:
       Display rotation (CW) in degrees.
       If not defined, rotation is off by default.
 
+  x-offset:
+    type: int
+    default: 0
+    description:
+      Offset, in controller RAM byte pages, between the SSD16XX RAM X
+      origin and the first visible panel byte.
+
 child-binding:
   description: |
     Child nodes describe refresh profiles. Each refresh profile
